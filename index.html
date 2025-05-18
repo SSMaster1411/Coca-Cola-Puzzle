@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Financial Statement Puzzle</title>
+  <style>
+    body {
+      background: #111;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      font-family: sans-serif;
+    }
+
+    .puzzle-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .puzzle-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 100px);
+      grid-template-rows: repeat(4, 100px);
+      gap: 2px;
+      background: #222;
+      padding: 2px;
+      margin-bottom: 30px;
+    }
+
+    .grid-cell {
+      width: 100px;
+      height: 100px;
+      background: #333;
+      box-shadow: inset 0 0 4px #000;
+      position: relative;
+    }
+
+    .piece-pool {
+      display: flex;
+      flex-wrap: wrap;
+      width: 420px;
+      gap: 5px;
+      background: #222;
+      padding: 5px;
+      justify-content: center;
+    }
+
+    .piece {
+      width: 100px;
+      height: 100px;
+      background-image: url('https://th.bing.com/th/id/R.23a6b95231c2c82bf1927a450cbd3b5d?rik=ULRApvVecjmW2Q&riu=http%3a%2f%2f3.bp.blogspot.com%2f-VsRUiU0pn4M%2fVABXyszoXhI%2fAAAAAAAAIg8%2faAC4TPA47ZU%2fs1600%2fP1050064.JPG&ehk=Jn2Qb5dRNXa1cPVk5YH8lxVV0lLinMi4LnZWj18wBT0%3d&risl=&pid=ImgRaw&r=0');
+      background-size: 400px 400px;
+      box-shadow: 0 0 3px #000;
+      cursor: grab;
+    }
+
+    .piece.locked {
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .piece.dragging {
+      opacity: 0.5;
+    }
+
+    #completionMessage {
+      display: none;
+      position: fixed;
+      top: 30%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #222;
+      border: 2px solid #fff;
+      padding: 30px 50px;
+      font-size: 24px;
+      color: #0f0;
+      z-index: 1000;
+      text-align: center;
+      opacity: 1;
+      transition: opacity 1s ease;
+    }
+
+    #finalImage {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('https://th.bing.com/th/id/R.23a6b95231c2c82bf1927a450cbd3b5d?rik=ULRApvVecjmW2Q&riu=http%3a%2f%2f3.bp.blogspot.com%2f-VsRUiU0pn4M%2fVABXyszoXhI%2fAAAAAAAAIg8%2faAC4TPA47ZU%2fs1600%2fP1050064.JPG&ehk=Jn2Qb5dRNXa1cPVk5YH8lxVV0lLinMi4LnZWj18wBT0%3d&risl=&pid=ImgRaw&r=0');
+      background-size: cover;
+      background-position: center;
+      z-index: 999;
+    }
+
+    #guideImage {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 200px;
+      height: auto;
+      border: 2px solid #fff;
+      box-shadow: 0 0 8px #000;
+      opacity: 0.9;
+      z-index: 500;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="puzzle-container">
+    <h2>Financial Statement Puzzle</h2>
+    <div class="puzzle-grid" id="puzzleGrid">
+      <!-- Grid cells created by JS -->
+    </div>
+
+    <div class="piece-pool" id="piecePool"></div>
+  </div>
+
+  <img id="guideImage" src="https://th.bing.com/th/id/R.23a6b95231c2c82bf1927a450cbd3b5d?rik=ULRApvVecjmW2Q&riu=http%3a%2f%2f3.bp.blogspot.com%2f-VsRUiU0pn4M%2fVABXyszoXhI%2fAAAAAAAAIg8%2faAC4TPA47ZU%2fs1600%2fP1050064.JPG&ehk=Jn2Qb5dRNXa1cPVk5YH8lxVV0lLinMi4LnZWj18wBT0%3d&risl=&pid=ImgRaw&r=0" alt="Guide Image" />
+
+  <div id="completionMessage">✅ Financial Statement Completed!</div>
+  <div id="finalImage"></div>
+
+  <script>
+    const positions = [
+      '0px 0px', '-100px 0px', '-200px 0px', '-300px 0px',
+      '0px -100px', '-100px -100px', '-200px -100px', '-300px -100px',
+      '0px -200px', '-100px -200px', '-200px -200px', '-300px -200px',
+      '0px -300px', '-100px -300px', '-200px -300px', '-300px -300px'
+    ];
+
+    const puzzleGrid = document.getElementById('puzzleGrid');
+    const piecePool = document.getElementById('piecePool');
+    const message = document.getElementById('completionMessage');
+    const finalImage = document.getElementById('finalImage');
+
+    positions.forEach(pos => {
+      const cell = document.createElement('div');
+      cell.className = 'grid-cell';
+      cell.dataset.expectedPos = pos;
+      puzzleGrid.appendChild(cell);
+    });
+
+    positions.forEach(pos => {
+      const piece = document.createElement('div');
+      piece.className = 'piece';
+      piece.style.backgroundPosition = pos;
+      piece.draggable = true;
+      piece.dataset.pos = pos;
+      piecePool.appendChild(piece);
+    });
+
+    for (let i = piecePool.children.length; i >= 0; i--) {
+      piecePool.appendChild(piecePool.children[Math.random() * i | 0]);
+    }
+
+    let draggedPiece = null;
+
+    document.addEventListener('dragstart', (e) => {
+      if (e.target.classList.contains('piece') && !e.target.classList.contains('locked')) {
+        draggedPiece = e.target;
+        e.target.classList.add('dragging');
+      }
+    });
+
+    document.addEventListener('dragend', (e) => {
+      if (draggedPiece) {
+        draggedPiece.classList.remove('dragging');
+        draggedPiece = null;
+      }
+    });
+
+    document.querySelectorAll('.grid-cell, #piecePool').forEach(target => {
+      target.addEventListener('dragover', (e) => e.preventDefault());
+
+      target.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (draggedPiece) {
+          if (target.classList.contains('grid-cell') && target.children.length === 0) {
+            if (draggedPiece.dataset.pos === target.dataset.expectedPos) {
+              target.appendChild(draggedPiece);
+              draggedPiece.classList.add('locked');
+              checkPuzzleComplete();
+            } else {
+              alert('Wrong spot! Try again.');
+            }
+          } else if (target.id === 'piecePool') {
+            piecePool.appendChild(draggedPiece);
+          }
+        }
+      });
+    });
+
+    function checkPuzzleComplete() {
+      const lockedPieces = document.querySelectorAll('.piece.locked');
+      if (lockedPieces.length === 16) {
+        message.style.display = 'block';
+        message.style.opacity = '1';
+        finalImage.style.display = 'block';
+        setTimeout(() => {
+          message.style.opacity = '0';
+          setTimeout(() => {
+            message.style.display = 'none';
+          }, 1000);
+        }, 3000);
+      }
+    }
+  </script>
+</body>
+</html>
+
