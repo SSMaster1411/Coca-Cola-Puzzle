@@ -30,6 +30,7 @@
       background: #222;
       padding: 2px;
       margin-bottom: 20px;
+      touch-action: none; /* Prevent zoom/scroll on touch */
     }
 
     .grid-cell {
@@ -148,6 +149,7 @@
     const message = document.getElementById('completionMessage');
     const finalImage = document.getElementById('finalImage');
 
+    // Create grid cells
     positions.forEach(pos => {
       const cell = document.createElement('div');
       cell.className = 'grid-cell';
@@ -155,6 +157,7 @@
       puzzleGrid.appendChild(cell);
     });
 
+    // Create pieces
     positions.forEach(pos => {
       const piece = document.createElement('div');
       piece.className = 'piece';
@@ -164,12 +167,14 @@
       piecePool.appendChild(piece);
     });
 
+    // Shuffle
     for (let i = piecePool.children.length; i >= 0; i--) {
       piecePool.appendChild(piecePool.children[Math.random() * i | 0]);
     }
 
     let draggedPiece = null;
 
+    // Drag & drop support
     document.addEventListener('dragstart', e => {
       if (e.target.classList.contains('piece') && !e.target.classList.contains('locked')) {
         draggedPiece = e.target;
@@ -216,27 +221,38 @@
       }
     });
 
+    document.addEventListener('touchmove', function (e) {
+      if (touchPiece) e.preventDefault(); // prevent scroll
+    }, { passive: false });
+
     document.addEventListener('touchend', e => {
-      if (touchPiece) {
-        touchPiece.classList.remove('dragging');
-        touchPiece = null;
-      }
-    });
-
-    puzzleGrid.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
-
-    puzzleGrid.addEventListener('touchend', e => {
       const touch = e.changedTouches[0];
-      const target = document.elementFromPoint(touch.clientX, touch.clientY);
-      if (touchPiece && target && target.classList.contains('grid-cell') && target.children.length === 0) {
-        if (touchPiece.dataset.pos === target.dataset.expectedPos) {
-          target.appendChild(touchPiece);
-          touchPiece.classList.add('locked');
-          checkPuzzleComplete();
-        } else {
-          alert('Wrong spot! Try again.');
+      const touchX = touch.clientX;
+      const touchY = touch.clientY;
+
+      if (!touchPiece) return;
+
+      const cells = document.querySelectorAll('.grid-cell');
+      for (const cell of cells) {
+        const rect = cell.getBoundingClientRect();
+        if (
+          touchX >= rect.left && touchX <= rect.right &&
+          touchY >= rect.top && touchY <= rect.bottom &&
+          cell.children.length === 0
+        ) {
+          if (touchPiece.dataset.pos === cell.dataset.expectedPos) {
+            cell.appendChild(touchPiece);
+            touchPiece.classList.add('locked');
+            checkPuzzleComplete();
+          } else {
+            alert('Wrong spot! Try again.');
+          }
+          break;
         }
       }
+
+      touchPiece.classList.remove('dragging');
+      touchPiece = null;
     });
 
     function checkPuzzleComplete() {
