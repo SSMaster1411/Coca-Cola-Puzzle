@@ -21,6 +21,30 @@
       margin-bottom: 10px;
     }
 
+    /* Welcome message styling */
+    #welcomeMessage {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #222;
+      border: 2px solid #0f0;
+      padding: 15px 40px;
+      font-size: 24px;
+      color: #0f0;
+      text-align: center;
+      border-radius: 8px;
+      user-select: none;
+      z-index: 10001;
+      opacity: 1;
+      transition: opacity 1s ease-in-out;
+    }
+
+    #welcomeMessage.hide {
+      opacity: 0;
+      pointer-events: none;
+    }
+
     /* Smaller guide image */
     #guideImage {
       width: 150px;
@@ -154,6 +178,9 @@
     </div>
   </div>
 
+  <!-- Welcome message -->
+  <div id="welcomeMessage">Click and Place Pieces in the Grid</div>
+
   <!-- Fullscreen overlay -->
   <div id="fullImageOverlay" title="Click anywhere to close full image">
     <img
@@ -174,6 +201,7 @@
     const piecePool = document.getElementById('piecePool');
     const fullImageOverlay = document.getElementById('fullImageOverlay');
     const message = document.getElementById('completionMessage');
+    const welcome = document.getElementById('welcomeMessage');
 
     let selectedPiece = null;
 
@@ -287,6 +315,13 @@
 
       selectedPiece = null;
     }
+
+    // Welcome message fade out after 4 seconds
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        welcome.classList.add('hide');
+      }, 4000);
+    });
   </script>
 </body>
 </html>
